@@ -67,7 +67,8 @@ function drawArm(c, sh, el, hd, o) {
     c.strokeStyle = '#5a3a24'; c.lineWidth = 2; c.beginPath(); c.moveTo(px, py); c.lineTo(px + (hash(k * 7) - .5) * 6, py - 12 * gb); c.stroke(); } c.globalAlpha = 1; }
   // manga
   const sl = [lerp(sh[0], el[0], .55), lerp(sh[1], el[1], .55)];
-  seg(sh, sl, 80, SHIRT_D); seg(sh, sl, 72, SHIRT);
+  if (o.longSleeve) { const se = [lerp(el[0], hd[0], .78), lerp(el[1], hd[1], .78)]; c.strokeStyle = o.sleeveD; c.lineWidth = 80; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(...sh); c.lineTo(...el); c.lineTo(...se); c.stroke(); c.strokeStyle = o.sleeve; c.lineWidth = 72; c.stroke(); }
+  else { seg(sh, sl, 80, o.sleeveD || SHIRT_D); seg(sh, sl, 72, o.sleeve || SHIRT); }
   c.fillStyle = SKIN.line; c.beginPath(); c.arc(hd[0], hd[1], 33, 0, TAU); c.fill(); c.fillStyle = sk; c.beginPath(); c.arc(hd[0], hd[1], 29, 0, TAU); c.fill();
   c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.arc(hd[0] - 8, hd[1] - 10, 9, 0, TAU); c.fill();
 }
