@@ -41,6 +41,7 @@ function furFill(c, pts, o) {
   c.save(); smoothPath(c, pts);
   const g = c.createLinearGradient(0, y0, 0, y1); o.grad.forEach(s => g.addColorStop(s[0], s[1]));
   c.fillStyle = g; c.fill(); c.clip();
+  if (o.pre) o.pre(c, [x0, y0, x1, y1]);
   if (o.light) { const lx = lerp(x0, x1, o.light[0]), ly = lerp(y0, y1, o.light[1]); const rg = c.createRadialGradient(lx, ly, 0, lx, ly, (x1 - x0) * .8); rg.addColorStop(0, `rgba(255,255,255,${o.light[2]})`); rg.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = rg; c.fillRect(x0, y0, x1 - x0, y1 - y0); }
   const N = (o.density || 20) * (x1 - x0) * (y1 - y0) / 1000; c.lineCap = 'round';
   for (let i = 0; i < N; i++) {
@@ -78,3 +79,12 @@ function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x 
 function vgrad(c, y0, y1, stops) { const g = c.createLinearGradient(0, y0, 0, y1); stops.forEach(s => g.addColorStop(s[0], s[1])); return g; }
 // col = "r,g,b"
 function glow(c, x, y, r, col, a = 1) { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(${col},1)`); g.addColorStop(.35, `rgba(${col},.45)`); g.addColorStop(1, `rgba(${col},0)`); c.save(); c.globalAlpha = a; c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2); c.restore(); }
+
+// convierte una curva (lista de puntos) en un tubo cerrado de ancho variable
+function tubePts(curve, w0, w1 = w0) {
+  const L = [], R = [], n = curve.length;
+  for (let i = 0; i < n; i++) { const a = curve[Math.max(0, i - 1)], b = curve[Math.min(n - 1, i + 1)]; let tx = b[0] - a[0], ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+    const w = lerp(w0, w1, i / (n - 1)) / 2; L.push([curve[i][0] - ty * w, curve[i][1] + tx * w]); R.push([curve[i][0] + ty * w, curve[i][1] - tx * w]); }
+  return L.concat(R.reverse());
+}
+function bez(p0, p1, p2, n = 12) { const o = []; for (let i = 0; i <= n; i++) { const t = i / n; o.push([(1 - t) * (1 - t) * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0], (1 - t) * (1 - t) * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]]); } return o; }
