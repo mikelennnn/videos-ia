@@ -1,0 +1,43 @@
+name: Subir video a YouTube
+
+on:
+  schedule:
+    - cron: '7 1 * * *'   # todos los días a las 01:07 UTC (19:07 en Ciudad de México)
+  workflow_dispatch:       # también se puede lanzar a mano desde la pestaña Actions
+    inputs:
+      por_ejecucion:
+        description: 'Cuántos videos subir ahora'
+        default: '1'
+      prueba:
+        description: '1 = solo mostrar qué subiría, sin subir'
+        default: '0'
+
+permissions:
+  contents: write
+
+concurrency: subir-youtube
+
+jobs:
+  subir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Subir el siguiente video de la cola
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          POR_EJECUCION: ${{ github.event.inputs.por_ejecucion || vars.POR_EJECUCION || '1' }}
+          PRIVACIDAD: ${{ vars.PRIVACIDAD || 'public' }}
+          PRUEBA: ${{ github.event.inputs.prueba || '0' }}
+        run: python publicar/subir_youtube.py
+      - name: Guardar qué se subió
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git add publicar/subidos.json
+          git diff --cached --quiet || (git commit -m "Subido a YouTube: $(date -u +%F)" && git push)
