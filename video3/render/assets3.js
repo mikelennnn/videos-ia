@@ -57,7 +57,7 @@ const POSES = {
 function poseMix(a, b, k) { const A = POSES[a], B2 = POSES[b || a]; return A.map((p, i) => [lerp(p[0], B2[i][0], k), lerp(p[1], B2[i][1], k)]); }
 function drawArm(c, sh, el, hd, o) {
   const seg = (p, q, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(...p); c.lineTo(...q); c.stroke(); };
-  const cold = o.cold || 0; const sk = cold > .3 ? '#e9bea0' : SKIN.col;
+  const cold = o.cold || 0; const sk = o.skinCol || (cold > .3 ? '#e9bea0' : SKIN.col);
   c.strokeStyle = SKIN.line; c.lineWidth = 58; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(...sh); c.lineTo(...el); c.lineTo(...hd); c.stroke();
   c.strokeStyle = sk; c.lineWidth = 50; c.beginPath(); c.moveTo(...sh); c.lineTo(...el); c.lineTo(...hd); c.stroke();
   c.strokeStyle = 'rgba(255,255,255,.25)'; c.lineWidth = 10; c.beginPath(); c.moveTo(lerp(el[0], hd[0], .15) - 8, lerp(el[1], hd[1], .15) - 8); c.lineTo(lerp(el[0], hd[0], .75) - 8, lerp(el[1], hd[1], .75) - 8); c.stroke();
@@ -77,17 +77,17 @@ function drawBeto(c, x, y, s, o = {}) {
   const t = o.t || 0, sv = o.shiver || 0;
   c.save(); c.translate(x + (hash(t * 97) - .5) * 8 * sv, y); c.scale(s, s); c.globalAlpha = o.alpha ?? 1;
   const g = c.createRadialGradient(0, 0, 0, 0, 0, 200); g.addColorStop(0, 'rgba(10,10,30,.35)'); g.addColorStop(1, 'rgba(10,10,30,0)'); c.save(); c.scale(1, .16); c.fillStyle = g; c.fillRect(-220, -220, 440, 440); c.restore();
-  c.drawImage(C.legs, -160, -300);
+  c.drawImage(o.legsImg || C.legs, -160, -300);
   const br = Math.sin(t * 2.4) * 3; c.translate(0, br * .3);
   const P = poseMix(o.pose || 'side', o.pose2, o.pk || 0);
   const SH = [[-128, -538], [128, -538]];
   const back = o.pose === 'hug' || o.pose2 === 'hug';
   if (!back) { /* brazos laterales: detrás del cuerpo no hace falta */ }
-  c.drawImage(C.torso, -200, -600);
+  c.drawImage(o.torsoImg || C.torso, -200, -600);
   // cabeza
   const hy = -700 + br, tilt = o.headTilt || 0;
   c.save(); c.translate(0, hy); c.rotate(tilt);
-  c.drawImage(C.head, -210, -230);
+  c.drawImage(o.headImg || C.head, -210, -230);
   // frío: nariz y cachetes rojos, tinte azul
   const cold = o.cold || 0; c.save(); c.beginPath(); c.ellipse(0, 0, 110, 120, 0, 0, TAU); c.clip(); c.fillStyle = `rgba(120,170,255,${.14 * cold})`; c.fillRect(-120, -130, 240, 260); c.restore();
   c.fillStyle = `rgba(255,110,120,${.3 + .3 * cold})`; [[-64, 34], [64, 34]].forEach(([ex, ey]) => { c.beginPath(); c.ellipse(ex, ey, 22, 14, 0, 0, TAU); c.fill(); });
